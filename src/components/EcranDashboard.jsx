@@ -28,7 +28,7 @@ function jouerBip() {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     const contexte = new AudioCtx();
-    const notes = [659, 784, 988]; // mi, sol, si — petit motif ascendant, facile à reconnaître
+    const notes = [659, 784, 988, 1175]; // mi, sol, si, ré — petit motif ascendant, facile à reconnaître
     const dureeNote = 0.16;
     const espacement = 0.18;
 
