@@ -23,6 +23,43 @@ function formaterHeure(dateIso) {
   return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 
+function formaterDateHeure(dateIso) {
+  const date = new Date(dateIso);
+  const jour = date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+  const heure = date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  return `${jour} · ${heure}`;
+}
+
+function formaterJourLong(dateIso) {
+  const date = new Date(dateIso);
+  const texte = date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  return texte.charAt(0).toUpperCase() + texte.slice(1);
+}
+
+// Regroupe une liste de commandes par jour (basé sur date_creation), en conservant
+// l'ordre déjà trié (plus récent en premier) renvoyé par le backend.
+function grouperParJour(commandes) {
+  const groupes = [];
+  const index = new Map();
+
+  commandes.forEach((commande) => {
+    const cle = new Date(commande.date_creation).toDateString();
+    if (!index.has(cle)) {
+      const groupe = { cle, libelle: formaterJourLong(commande.date_creation), commandes: [] };
+      index.set(cle, groupe);
+      groupes.push(groupe);
+    }
+    index.get(cle).commandes.push(commande);
+  });
+
+  return groupes.map((groupe) => ({
+    ...groupe,
+    totalJour: groupe.commandes
+      .filter((c) => c.statut === "servie")
+      .reduce((somme, c) => somme + c.total, 0),
+  }));
+}
+
 // Joue une petite mélodie de 3 notes générée à la volée, sans fichier audio externe.
 function jouerBip() {
   try {
@@ -207,7 +244,7 @@ export default function EcranDashboard() {
               <li key={commande.id} className="carte-produit" style={{ alignItems: "flex-start", flexDirection: "column", gap: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                   <span className="carte-produit__nom">Table {commande.table_numero}</span>
-                  <span className="carte-produit__meta">{formaterHeure(commande.date_creation)}</span>
+                  <span className="carte-produit__meta">{formaterDateHeure(commande.date_creation)}</span>
                 </div>
 
                 <ul className="liste-recap" style={{ width: "100%" }}>
@@ -264,32 +301,41 @@ export default function EcranDashboard() {
               Aucune commande dans l'historique pour l'instant.
             </p>
           ) : (
-            <ul className="liste-produits">
-              {historique.map((commande) => (
-                <li key={commande.id} className="carte-produit" style={{ alignItems: "flex-start", flexDirection: "column", gap: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                    <span className="carte-produit__nom">Table {commande.table_numero}</span>
-                    <span className="carte-produit__meta">{formaterHeure(commande.date_creation)}</span>
-                  </div>
+            grouperParJour(historique).map((groupe) => (
+              <div key={groupe.cle} style={{ marginBottom: 24 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "0 4px", marginBottom: 10 }}>
+                  <span className="eyebrow">{groupe.libelle}</span>
+                  <span className="carte-produit__meta">{groupe.totalJour} FCFA vendus</span>
+                </div>
 
-                  <ul className="liste-recap" style={{ width: "100%" }}>
-                    {commande.lignes.map((ligne) => (
-                      <li key={ligne.id}>
-                        {ligne.quantite} × {ligne.produit.nom}
-                        <span className="liste-recap__prix">{ligne.sous_total} FCFA</span>
-                      </li>
-                    ))}
-                  </ul>
+                <ul className="liste-produits">
+                  {groupe.commandes.map((commande) => (
+                    <li key={commande.id} className="carte-produit" style={{ alignItems: "flex-start", flexDirection: "column", gap: 10 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                        <span className="carte-produit__nom">Table {commande.table_numero}</span>
+                        <span className="carte-produit__meta">{formaterHeure(commande.date_creation)}</span>
+                      </div>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-                    <span className={`badge-statut badge-statut--${commande.statut}`}>
-                      {LIBELLES_STATUT[commande.statut]}
-                    </span>
-                    <span className="carte-produit__meta">{commande.total} FCFA</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                      <ul className="liste-recap" style={{ width: "100%" }}>
+                        {commande.lignes.map((ligne) => (
+                          <li key={ligne.id}>
+                            {ligne.quantite} × {ligne.produit.nom}
+                            <span className="liste-recap__prix">{ligne.sous_total} FCFA</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                        <span className={`badge-statut badge-statut--${commande.statut}`}>
+                          {LIBELLES_STATUT[commande.statut]}
+                        </span>
+                        <span className="carte-produit__meta">{commande.total} FCFA</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
           )}
         </>
       )}
