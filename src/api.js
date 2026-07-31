@@ -52,6 +52,10 @@ export function recupererHistoriqueCommandes() {
   return requeteJSON(`/api/commandes/?vue=historique`);
 }
 
+export function recupererStatsVentes() {
+  return requeteJSON(`/api/commandes/stats/`);
+}
+
 export function changerStatutCommande(id, statut) {
   return requeteJSON(`/api/commandes/${id}/statut/`, {
     method: "PATCH",

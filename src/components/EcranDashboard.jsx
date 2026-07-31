@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { recupererCommandesActives, recupererHistoriqueCommandes, changerStatutCommande } from "../api";
+import { recupererCommandesActives, recupererHistoriqueCommandes, recupererStatsVentes, changerStatutCommande } from "../api";
 
 const LIBELLES_STATUT = {
   recue: "Reçue",
@@ -74,12 +74,14 @@ export default function EcranDashboard() {
   const [onglet, setOnglet] = useState("encours"); // encours | historique
   const [historique, setHistorique] = useState([]);
   const [chargementHistorique, setChargementHistorique] = useState(false);
+  const [stats, setStats] = useState(null);
 
   function chargerHistorique() {
     setChargementHistorique(true);
-    recupererHistoriqueCommandes()
-      .then((donnees) => {
-        setHistorique(donnees);
+    Promise.all([recupererHistoriqueCommandes(), recupererStatsVentes()])
+      .then(([donneesHistorique, donneesStats]) => {
+        setHistorique(donneesHistorique);
+        setStats(donneesStats);
         setChargementHistorique(false);
       })
       .catch(() => {
@@ -237,37 +239,59 @@ export default function EcranDashboard() {
         )
       ) : chargementHistorique ? (
         <p className="texte-attenue" style={{ padding: "0 20px" }}>Chargement de l'historique…</p>
-      ) : historique.length === 0 ? (
-        <p className="texte-attenue" style={{ padding: "0 20px" }}>
-          Aucune commande dans l'historique pour l'instant.
-        </p>
       ) : (
-        <ul className="liste-produits">
-          {historique.map((commande) => (
-            <li key={commande.id} className="carte-produit" style={{ alignItems: "flex-start", flexDirection: "column", gap: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                <span className="carte-produit__nom">Table {commande.table_numero}</span>
-                <span className="carte-produit__meta">{formaterHeure(commande.date_creation)}</span>
-              </div>
-
+        <>
+          {stats && stats.produits.length > 0 && (
+            <div className="carte-produit" style={{ flexDirection: "column", alignItems: "flex-start", gap: 8, marginBottom: 16 }}>
+              <span className="carte-produit__nom">Récapitulatif des ventes</span>
               <ul className="liste-recap" style={{ width: "100%" }}>
-                {commande.lignes.map((ligne) => (
-                  <li key={ligne.id}>
-                    {ligne.quantite} × {ligne.produit.nom}
-                    <span className="liste-recap__prix">{ligne.sous_total} FCFA</span>
+                {stats.produits.map((p) => (
+                  <li key={p.nom}>
+                    {p.quantite} × {p.nom}
+                    <span className="liste-recap__prix">{p.montant} FCFA</span>
                   </li>
                 ))}
               </ul>
-
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-                <span className={`badge-statut badge-statut--${commande.statut}`}>
-                  {LIBELLES_STATUT[commande.statut]}
-                </span>
-                <span className="carte-produit__meta">{commande.total} FCFA</span>
+              <div className="pied-panier__total" style={{ width: "100%", margin: 0 }}>
+                <span>Total vendu</span>
+                <span className="pied-panier__montant">{stats.total_general} FCFA</span>
               </div>
-            </li>
-          ))}
-        </ul>
+            </div>
+          )}
+
+          {historique.length === 0 ? (
+            <p className="texte-attenue" style={{ padding: "0 20px" }}>
+              Aucune commande dans l'historique pour l'instant.
+            </p>
+          ) : (
+            <ul className="liste-produits">
+              {historique.map((commande) => (
+                <li key={commande.id} className="carte-produit" style={{ alignItems: "flex-start", flexDirection: "column", gap: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                    <span className="carte-produit__nom">Table {commande.table_numero}</span>
+                    <span className="carte-produit__meta">{formaterHeure(commande.date_creation)}</span>
+                  </div>
+
+                  <ul className="liste-recap" style={{ width: "100%" }}>
+                    {commande.lignes.map((ligne) => (
+                      <li key={ligne.id}>
+                        {ligne.quantite} × {ligne.produit.nom}
+                        <span className="liste-recap__prix">{ligne.sous_total} FCFA</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                    <span className={`badge-statut badge-statut--${commande.statut}`}>
+                      {LIBELLES_STATUT[commande.statut]}
+                    </span>
+                    <span className="carte-produit__meta">{commande.total} FCFA</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </div>
   );
