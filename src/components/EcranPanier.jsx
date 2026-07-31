@@ -57,6 +57,12 @@ export default function EcranPanier({
 
       {erreur && <p className="message-erreur">{erreur}</p>}
 
+      {lignes.length > 0 && (
+        <p className="texte-attenue" style={{ padding: "0 20px", fontSize: 13, textAlign: "center" }}>
+          Une fois validée, la commande ne pourra plus être modifiée. Vérifie bien avant de confirmer.
+        </p>
+      )}
+
       <div className="pied-panier">
         <div className="pied-panier__total">
           <span>Total</span>
