@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { recupererCommandesActives, changerStatutCommande } from "../api";
+import { recupererCommandesActives, recupererHistoriqueCommandes, changerStatutCommande } from "../api";
 
 const LIBELLES_STATUT = {
   recue: "Reçue",
@@ -70,6 +70,27 @@ export default function EcranDashboard() {
   );
 
   const idsConnus = useRef(null); // null = premier chargement, pas encore initialisé
+
+  const [onglet, setOnglet] = useState("encours"); // encours | historique
+  const [historique, setHistorique] = useState([]);
+  const [chargementHistorique, setChargementHistorique] = useState(false);
+
+  function chargerHistorique() {
+    setChargementHistorique(true);
+    recupererHistoriqueCommandes()
+      .then((donnees) => {
+        setHistorique(donnees);
+        setChargementHistorique(false);
+      })
+      .catch(() => {
+        setErreur("Impossible de charger l'historique.");
+        setChargementHistorique(false);
+      });
+  }
+
+  useEffect(() => {
+    if (onglet === "historique") chargerHistorique();
+  }, [onglet]);
 
   useEffect(() => {
     let annule = false;
@@ -143,6 +164,23 @@ export default function EcranDashboard() {
         </h1>
       </header>
 
+      <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+        <button
+          className="bouton-ajouter"
+          style={{ opacity: onglet === "encours" ? 1 : 0.5 }}
+          onClick={() => setOnglet("encours")}
+        >
+          En cours
+        </button>
+        <button
+          className="bouton-ajouter"
+          style={{ opacity: onglet === "historique" ? 1 : 0.5 }}
+          onClick={() => setOnglet("historique")}
+        >
+          Historique
+        </button>
+      </div>
+
       {permissionNotif === "default" && (
         <button className="bouton-ajouter" style={{ marginBottom: 16 }} onClick={demanderPermissionNotif}>
           🔔 Activer les notifications
@@ -156,13 +194,56 @@ export default function EcranDashboard() {
 
       {erreur && <p className="message-erreur">{erreur}</p>}
 
-      {commandes.length === 0 ? (
+      {onglet === "encours" ? (
+        commandes.length === 0 ? (
+          <p className="texte-attenue" style={{ padding: "0 20px" }}>
+            Aucune commande en attente pour l'instant.
+          </p>
+        ) : (
+          <ul className="liste-produits">
+            {commandes.map((commande) => (
+              <li key={commande.id} className="carte-produit" style={{ alignItems: "flex-start", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                  <span className="carte-produit__nom">Table {commande.table_numero}</span>
+                  <span className="carte-produit__meta">{formaterHeure(commande.date_creation)}</span>
+                </div>
+
+                <ul className="liste-recap" style={{ width: "100%" }}>
+                  {commande.lignes.map((ligne) => (
+                    <li key={ligne.id}>
+                      {ligne.quantite} × {ligne.produit.nom}
+                    </li>
+                  ))}
+                </ul>
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                  <span className={`badge-statut badge-statut--${commande.statut}`}>
+                    {LIBELLES_STATUT[commande.statut]}
+                  </span>
+
+                  {PROCHAIN_STATUT[commande.statut] && (
+                    <button
+                      className="bouton-ajouter"
+                      onClick={() => avancerStatut(commande)}
+                      disabled={!!enAttente[commande.id]}
+                    >
+                      {enAttente[commande.id] ? "…" : LIBELLE_ACTION[commande.statut]}
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )
+      ) : chargementHistorique ? (
+        <p className="texte-attenue" style={{ padding: "0 20px" }}>Chargement de l'historique…</p>
+      ) : historique.length === 0 ? (
         <p className="texte-attenue" style={{ padding: "0 20px" }}>
-          Aucune commande en attente pour l'instant.
+          Aucune commande dans l'historique pour l'instant.
         </p>
       ) : (
         <ul className="liste-produits">
-          {commandes.map((commande) => (
+          {historique.map((commande) => (
             <li key={commande.id} className="carte-produit" style={{ alignItems: "flex-start", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                 <span className="carte-produit__nom">Table {commande.table_numero}</span>
@@ -173,6 +254,7 @@ export default function EcranDashboard() {
                 {commande.lignes.map((ligne) => (
                   <li key={ligne.id}>
                     {ligne.quantite} × {ligne.produit.nom}
+                    <span className="liste-recap__prix">{ligne.sous_total} FCFA</span>
                   </li>
                 ))}
               </ul>
@@ -181,16 +263,7 @@ export default function EcranDashboard() {
                 <span className={`badge-statut badge-statut--${commande.statut}`}>
                   {LIBELLES_STATUT[commande.statut]}
                 </span>
-
-                {PROCHAIN_STATUT[commande.statut] && (
-                  <button
-                    className="bouton-ajouter"
-                    onClick={() => avancerStatut(commande)}
-                    disabled={!!enAttente[commande.id]}
-                  >
-                    {enAttente[commande.id] ? "…" : LIBELLE_ACTION[commande.statut]}
-                  </button>
-                )}
+                <span className="carte-produit__meta">{commande.total} FCFA</span>
               </div>
             </li>
           ))}

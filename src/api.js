@@ -48,6 +48,10 @@ export function recupererCommandesActives() {
   return requeteJSON(`/api/commandes/`);
 }
 
+export function recupererHistoriqueCommandes() {
+  return requeteJSON(`/api/commandes/?vue=historique`);
+}
+
 export function changerStatutCommande(id, statut) {
   return requeteJSON(`/api/commandes/${id}/statut/`, {
     method: "PATCH",
