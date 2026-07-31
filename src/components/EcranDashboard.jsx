@@ -23,20 +23,28 @@ function formaterHeure(dateIso) {
   return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 
-// Joue un bip simple généré à la volée, sans fichier audio externe.
+// Joue une petite mélodie de 3 notes générée à la volée, sans fichier audio externe.
 function jouerBip() {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     const contexte = new AudioCtx();
-    const oscillateur = contexte.createOscillator();
-    const volume = contexte.createGain();
-    oscillateur.type = "sine";
-    oscillateur.frequency.value = 880;
-    volume.gain.value = 0.15;
-    oscillateur.connect(volume);
-    volume.connect(contexte.destination);
-    oscillateur.start();
-    oscillateur.stop(contexte.currentTime + 0.3);
+    const notes = [659, 784, 988]; // mi, sol, si — petit motif ascendant, facile à reconnaître
+    const dureeNote = 0.16;
+    const espacement = 0.18;
+
+    notes.forEach((frequence, index) => {
+      const debut = contexte.currentTime + index * espacement;
+      const oscillateur = contexte.createOscillator();
+      const volume = contexte.createGain();
+      oscillateur.type = "sine";
+      oscillateur.frequency.value = frequence;
+      volume.gain.setValueAtTime(0.18, debut);
+      volume.gain.exponentialRampToValueAtTime(0.001, debut + dureeNote);
+      oscillateur.connect(volume);
+      volume.connect(contexte.destination);
+      oscillateur.start(debut);
+      oscillateur.stop(debut + dureeNote);
+    });
   } catch {
     // Navigateur ne supportant pas l'API audio : on ignore silencieusement.
   }
