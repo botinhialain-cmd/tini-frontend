@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export default function EcranPanier({
   table,
   lignes,
@@ -9,6 +11,13 @@ export default function EcranPanier({
   envoiEnCours,
   erreur,
 }) {
+  const [confirmationOuverte, setConfirmationOuverte] = useState(false);
+
+  function confirmerValidation() {
+    setConfirmationOuverte(false);
+    onValider();
+  }
+
   return (
     <div className="ecran">
       <header className="entete-panier">
@@ -57,12 +66,6 @@ export default function EcranPanier({
 
       {erreur && <p className="message-erreur">{erreur}</p>}
 
-      {lignes.length > 0 && (
-        <p className="texte-attenue" style={{ padding: "0 20px", fontSize: 13, textAlign: "center" }}>
-          Une fois validée, la commande ne pourra plus être modifiée. Vérifie bien avant de confirmer.
-        </p>
-      )}
-
       <div className="pied-panier">
         <div className="pied-panier__total">
           <span>Total</span>
@@ -70,12 +73,37 @@ export default function EcranPanier({
         </div>
         <button
           className="bouton-principal"
-          onClick={onValider}
+          onClick={() => setConfirmationOuverte(true)}
           disabled={lignes.length === 0 || envoiEnCours}
         >
           {envoiEnCours ? "Envoi en cours…" : "Valider ma commande"}
         </button>
       </div>
+
+      {confirmationOuverte && (
+        <div className="fond-popup" onClick={() => setConfirmationOuverte(false)}>
+          <div className="carte-popup" onClick={(e) => e.stopPropagation()}>
+            <h2 className="titre-popup">Confirmer la commande ?</h2>
+            <p className="texte-attenue" style={{ textAlign: "center", margin: "8px 0 20px" }}>
+              Une fois validée, la commande ne pourra plus être modifiée.
+            </p>
+            <div className="pied-panier__total" style={{ margin: "0 0 20px" }}>
+              <span>Total</span>
+              <span className="pied-panier__montant">{total} FCFA</span>
+            </div>
+            <button className="bouton-principal" onClick={confirmerValidation}>
+              Confirmer la commande
+            </button>
+            <button
+              className="lien-retour"
+              style={{ width: "100%", textAlign: "center", marginTop: 14 }}
+              onClick={() => setConfirmationOuverte(false)}
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

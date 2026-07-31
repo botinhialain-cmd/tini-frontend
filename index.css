@@ -1,0 +1,391 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap");
+
+:root {
+  --fond: #12201e;
+  --fond-carte: #1b2e2b;
+  --fond-carte-haut: #223a36;
+  --accent: #e8a33d;
+  --accent-fonce: #c17f22;
+  --texte: #f4efe4;
+  --texte-attenue: #96aca6;
+  --succes: #7fb894;
+  --erreur: #e07a63;
+  --rayon: 18px;
+  --ombre: 0 12px 30px -12px rgba(0, 0, 0, 0.55);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font-family: "Manrope", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-mobile {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--fond);
+  position: relative;
+}
+
+.ecran {
+  padding: 28px 20px 120px;
+  min-height: 100vh;
+}
+
+.ecran-plein {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.centre {
+  text-align: center;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.titre-marque {
+  font-family: "Fraunces", serif;
+  font-size: 44px;
+  font-weight: 700;
+  margin: 6px 0 2px;
+  letter-spacing: -0.01em;
+}
+
+.titre-section {
+  font-family: "Fraunces", serif;
+  font-size: 28px;
+  font-weight: 600;
+  margin: 4px 0 0;
+}
+
+.sous-titre {
+  color: var(--texte-attenue);
+  margin: 0 0 20px;
+  font-size: 15px;
+}
+
+.texte-attenue {
+  color: var(--texte-attenue);
+}
+
+.entete-menu {
+  margin-bottom: 24px;
+}
+
+.entete-panier {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lien-retour {
+  background: none;
+  border: none;
+  color: var(--texte-attenue);
+  font-size: 14px;
+  padding: 0;
+  margin-bottom: 8px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.liste-produits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.carte-produit {
+  background: var(--fond-carte);
+  border-radius: var(--rayon);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.carte-produit__photo {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.carte-produit__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.carte-produit__nom {
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.carte-produit__meta {
+  color: var(--texte-attenue);
+  font-size: 14px;
+}
+
+.bouton-ajouter {
+  background: var(--accent);
+  color: #241505;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.bouton-ajouter:hover {
+  background: var(--accent-fonce);
+}
+
+.bouton-ajouter:active {
+  transform: scale(0.96);
+}
+
+.selecteur-quantite {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--fond-carte-haut);
+  border-radius: 999px;
+  padding: 6px 8px;
+}
+
+.selecteur-quantite__bouton {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #241505;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selecteur-quantite__bouton:active {
+  transform: scale(0.92);
+}
+
+.selecteur-quantite__valeur {
+  min-width: 18px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.barre-panier {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  max-width: 440px;
+  margin: 0 auto;
+  background: var(--accent);
+  color: #241505;
+  border: none;
+  border-radius: 999px;
+  padding: 16px 20px;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: var(--ombre);
+}
+
+.barre-panier__badge {
+  background: #241505;
+  color: var(--accent);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.barre-panier__total {
+  margin-left: auto;
+}
+
+.pied-panier {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--fond-carte);
+  padding: 18px 20px 26px;
+  border-top-left-radius: var(--rayon);
+  border-top-right-radius: var(--rayon);
+  box-shadow: var(--ombre);
+}
+
+.pied-panier__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+  font-size: 15px;
+  color: var(--texte-attenue);
+}
+
+.pied-panier__montant {
+  font-family: "Fraunces", serif;
+  font-size: 22px;
+  color: var(--texte);
+  font-weight: 700;
+}
+
+.bouton-principal {
+  width: 100%;
+  background: var(--accent);
+  color: #241505;
+  border: none;
+  border-radius: 999px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bouton-principal:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.message-erreur {
+  color: var(--erreur);
+  font-size: 14px;
+  margin: 12px 0 0;
+}
+
+.carte-confirmation {
+  background: var(--fond-carte);
+  border-radius: var(--rayon);
+  padding: 32px 24px;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.badge-statut {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  background: rgba(232, 163, 61, 0.15);
+  color: var(--accent);
+}
+
+.badge-statut--servie {
+  background: rgba(127, 184, 148, 0.15);
+  color: var(--succes);
+}
+
+.badge-statut--annulee {
+  background: rgba(224, 122, 99, 0.15);
+  color: var(--erreur);
+}
+
+.liste-recap {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.liste-recap li {
+  display: flex;
+  justify-content: space-between;
+  color: var(--texte-attenue);
+}
+
+.liste-recap__prix {
+  color: var(--texte);
+}
+
+.fond-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 14, 13, 0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+  animation: apparition-fond 0.15s ease-out;
+}
+
+.carte-popup {
+  background: var(--fond-carte);
+  border-radius: var(--rayon) var(--rayon) 0 0;
+  padding: 28px 24px 32px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--ombre);
+  animation: apparition-popup 0.2s ease-out;
+}
+
+.titre-popup {
+  font-family: "Fraunces", serif;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+@keyframes apparition-fond {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes apparition-popup {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
