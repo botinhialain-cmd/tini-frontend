@@ -1,3 +1,5 @@
+const NOM_ETABLISSEMENT = import.meta.env.VITE_NOM_ETABLISSEMENT || "Yakpehi";
+
 export default function EcranMenu({
   table,
   produits,
@@ -13,7 +15,7 @@ export default function EcranMenu({
       <header className="entete-menu">
         <span className="eyebrow">Table {table.numero}</span>
         <h1 className="titre-marque">Tini</h1>
-        <p className="sous-titre">Choisis ta tournée</p>
+        <p className="sous-titre">Bienvenue au {NOM_ETABLISSEMENT}</p>
       </header>
 
       <ul className="liste-produits">
