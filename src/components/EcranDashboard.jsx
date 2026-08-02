@@ -369,6 +369,7 @@ export default function EcranDashboard() {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
                         <span className={`badge-statut badge-statut--${commande.statut}`}>
                           {LIBELLES_STATUT[commande.statut]}
+                          {commande.servi_par_nom && ` · ${commande.servi_par_nom}`}
                         </span>
                         <span className="carte-produit__meta">{commande.total} FCFA</span>
                       </div>
