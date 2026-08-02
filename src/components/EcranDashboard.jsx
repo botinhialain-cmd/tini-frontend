@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { recupererCommandesActives, recupererHistoriqueCommandes, recupererStatsVentes, changerStatutCommande } from "../api";
+import {
+  recupererCommandesActives,
+  recupererHistoriqueCommandes,
+  recupererStatsVentes,
+  changerStatutCommande,
+  lireSession,
+  effacerToken,
+} from "../api";
+import EcranConnexion from "./EcranConnexion";
 
 const LIBELLES_STATUT = {
   recue: "Reçue",
@@ -98,6 +106,8 @@ function notifierNouvelleCommande(commande) {
 }
 
 export default function EcranDashboard() {
+  const [session, setSession] = useState(() => lireSession());
+
   const [commandes, setCommandes] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState(null);
@@ -112,6 +122,7 @@ export default function EcranDashboard() {
   const [historique, setHistorique] = useState([]);
   const [chargementHistorique, setChargementHistorique] = useState(false);
   const [stats, setStats] = useState(null);
+
 
   function chargerHistorique() {
     setChargementHistorique(true);
@@ -128,10 +139,23 @@ export default function EcranDashboard() {
   }
 
   useEffect(() => {
-    if (onglet === "historique") chargerHistorique();
-  }, [onglet]);
+    if (session && session.role !== "gerant" && onglet === "historique") {
+      setOnglet("encours");
+    }
+  }, [session, onglet]);
+
+  function deconnexion() {
+    effacerToken();
+    setSession(null);
+  }
 
   useEffect(() => {
+    if (session && onglet === "historique") chargerHistorique();
+  }, [onglet, session]);
+
+  useEffect(() => {
+    if (!session) return;
+
     let annule = false;
 
     function charger() {
@@ -149,8 +173,13 @@ export default function EcranDashboard() {
           setChargement(false);
           setErreur(null);
         })
-        .catch(() => {
-          if (!annule) setErreur("Impossible de charger les commandes. Nouvelle tentative dans quelques secondes...");
+        .catch((err) => {
+          if (annule) return;
+          if (err.status === 401) {
+            deconnexion();
+            return;
+          }
+          setErreur("Impossible de charger les commandes. Nouvelle tentative dans quelques secondes...");
         });
     }
 
@@ -160,7 +189,7 @@ export default function EcranDashboard() {
       annule = true;
       clearInterval(interval);
     };
-  }, []);
+  }, [session]);
 
   function demanderPermissionNotif() {
     if (typeof Notification === "undefined") return;
@@ -190,6 +219,10 @@ export default function EcranDashboard() {
     }
   }
 
+  if (!session) {
+    return <EcranConnexion onConnecte={setSession} />;
+  }
+
   if (chargement) {
     return <div className="ecran-plein centre texte-attenue">Chargement des commandes…</div>;
   }
@@ -197,7 +230,13 @@ export default function EcranDashboard() {
   return (
     <div className="ecran">
       <header className="entete-menu">
-        <span className="eyebrow">Tableau de bord</span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span className="eyebrow">Tableau de bord</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span className="texte-attenue" style={{ fontSize: 13 }}>{session.username}</span>
+            <button className="lien-deconnexion" onClick={deconnexion}>Déconnexion</button>
+          </div>
+        </div>
         <h1 className="titre-marque" style={{ fontSize: 32 }}>
           Commandes en cours
         </h1>
@@ -211,13 +250,15 @@ export default function EcranDashboard() {
         >
           En cours
         </button>
-        <button
-          className="bouton-ajouter"
-          style={{ opacity: onglet === "historique" ? 1 : 0.5 }}
-          onClick={() => setOnglet("historique")}
-        >
-          Historique
-        </button>
+        {session.role === "gerant" && (
+          <button
+            className="bouton-ajouter"
+            style={{ opacity: onglet === "historique" ? 1 : 0.5 }}
+            onClick={() => setOnglet("historique")}
+          >
+            Historique
+          </button>
+        )}
       </div>
 
       {permissionNotif === "default" && (

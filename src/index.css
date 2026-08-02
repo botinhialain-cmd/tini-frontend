@@ -350,3 +350,71 @@ body {
 .liste-recap__prix {
   color: var(--texte);
 }
+
+.fond-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 14, 13, 0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+  animation: apparition-fond 0.15s ease-out;
+}
+
+.carte-popup {
+  background: var(--fond-carte);
+  border-radius: var(--rayon) var(--rayon) 0 0;
+  padding: 28px 24px 32px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--ombre);
+  animation: apparition-popup 0.2s ease-out;
+}
+
+.titre-popup {
+  font-family: "Fraunces", serif;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+@keyframes apparition-fond {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes apparition-popup {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.champ-connexion {
+  width: 100%;
+  background: var(--fond-carte-haut);
+  border: none;
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--texte);
+  font-family: "Manrope", system-ui, sans-serif;
+  font-size: 15px;
+  margin: 8px 0;
+}
+
+.champ-connexion::placeholder {
+  color: var(--texte-attenue);
+}
+
+.champ-connexion:focus {
+  outline: 2px solid var(--accent);
+}
+
+.lien-deconnexion {
+  background: none;
+  border: none;
+  color: var(--texte-attenue);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
