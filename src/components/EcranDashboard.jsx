@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import * as XLSX from "xlsx";
 import {
   recupererCommandesActives,
   recupererHistoriqueCommandes,
@@ -136,6 +137,35 @@ export default function EcranDashboard() {
         setErreur("Impossible de charger l'historique.");
         setChargementHistorique(false);
       });
+  }
+
+  function exporterExcel() {
+    const lignesCommandes = historique.map((commande) => {
+      const date = new Date(commande.date_creation);
+      return {
+        Date: date.toLocaleDateString("fr-FR"),
+        Heure: formaterHeure(commande.date_creation),
+        Table: commande.table_numero,
+        Produits: commande.lignes.map((l) => `${l.quantite} × ${l.produit.nom}`).join(", "),
+        Statut: LIBELLES_STATUT[commande.statut] || commande.statut,
+        "Servi par": commande.servi_par_nom || "",
+        "Total (FCFA)": commande.total,
+      };
+    });
+
+    const lignesRecap = (stats?.produits || []).map((p) => ({
+      Produit: p.nom,
+      Quantité: p.quantite,
+      "Montant (FCFA)": p.montant,
+    }));
+    lignesRecap.push({ Produit: "TOTAL GÉNÉRAL", Quantité: "", "Montant (FCFA)": stats?.total_general || 0 });
+
+    const classeur = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(classeur, XLSX.utils.json_to_sheet(lignesCommandes), "Commandes");
+    XLSX.utils.book_append_sheet(classeur, XLSX.utils.json_to_sheet(lignesRecap), "Récapitulatif");
+
+    const aujourdhui = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(classeur, `tini_historique_${aujourdhui}.xlsx`);
   }
 
   useEffect(() => {
@@ -319,6 +349,12 @@ export default function EcranDashboard() {
         <p className="texte-attenue" style={{ padding: "0 20px" }}>Chargement de l'historique…</p>
       ) : (
         <>
+          {historique.length > 0 && (
+            <button className="bouton-ajouter" style={{ marginBottom: 16 }} onClick={exporterExcel}>
+              📊 Exporter en Excel
+            </button>
+          )}
+
           {stats && stats.produits.length > 0 && (
             <div className="carte-produit" style={{ flexDirection: "column", alignItems: "flex-start", gap: 8, marginBottom: 16 }}>
               <span className="carte-produit__nom">Récapitulatif des ventes</span>
