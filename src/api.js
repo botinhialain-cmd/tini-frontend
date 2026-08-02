@@ -105,3 +105,10 @@ export function changerStatutCommande(id, statut) {
     body: JSON.stringify({ statut }),
   });
 }
+
+export function changerPaiementCommande(id, paye) {
+  return requeteJSON(`/api/commandes/${id}/paiement/`, {
+    method: "PATCH",
+    body: JSON.stringify({ paye }),
+  });
+}

@@ -5,6 +5,7 @@ import {
   recupererHistoriqueCommandes,
   recupererStatsVentes,
   changerStatutCommande,
+  changerPaiementCommande,
   lireSession,
   effacerToken,
 } from "../api";
@@ -148,6 +149,7 @@ export default function EcranDashboard() {
         Table: commande.table_numero,
         Produits: commande.lignes.map((l) => `${l.quantite} × ${l.produit.nom}`).join(", "),
         Statut: LIBELLES_STATUT[commande.statut] || commande.statut,
+        État: commande.paye ? "Payé" : "",
         "Servi par": commande.servi_par_nom || "",
         "Total (FCFA)": commande.total,
       };
@@ -249,6 +251,24 @@ export default function EcranDashboard() {
     }
   }
 
+  async function basculerPaiement(commande) {
+    const nouvelEtat = !commande.paye;
+    setEnAttente((e) => ({ ...e, [`paye-${commande.id}`]: true }));
+    try {
+      await changerPaiementCommande(commande.id, nouvelEtat);
+      setCommandes((liste) => liste.map((c) => (c.id === commande.id ? { ...c, paye: nouvelEtat } : c)));
+      setHistorique((liste) => liste.map((c) => (c.id === commande.id ? { ...c, paye: nouvelEtat } : c)));
+    } catch {
+      setErreur("Une action a échoué. Réessaie.");
+    } finally {
+      setEnAttente((e) => {
+        const copie = { ...e };
+        delete copie[`paye-${commande.id}`];
+        return copie;
+      });
+    }
+  }
+
   if (!session) {
     return <EcranConnexion onConnecte={setSession} />;
   }
@@ -341,6 +361,15 @@ export default function EcranDashboard() {
                     </button>
                   )}
                 </div>
+
+                <button
+                  className="lien-deconnexion"
+                  style={{ alignSelf: "flex-end" }}
+                  onClick={() => basculerPaiement(commande)}
+                  disabled={!!enAttente[`paye-${commande.id}`]}
+                >
+                  {enAttente[`paye-${commande.id}`] ? "…" : commande.paye ? "✅ Payé" : "◻︎ Marquer payé"}
+                </button>
               </li>
             ))}
           </ul>
@@ -409,6 +438,15 @@ export default function EcranDashboard() {
                         </span>
                         <span className="carte-produit__meta">{commande.total} FCFA</span>
                       </div>
+
+                      <button
+                        className="lien-deconnexion"
+                        style={{ alignSelf: "flex-end" }}
+                        onClick={() => basculerPaiement(commande)}
+                        disabled={!!enAttente[`paye-${commande.id}`]}
+                      >
+                        {enAttente[`paye-${commande.id}`] ? "…" : commande.paye ? "✅ Payé" : "◻︎ Marquer payé"}
+                      </button>
                     </li>
                   ))}
                 </ul>
