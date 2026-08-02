@@ -87,6 +87,23 @@ body {
   font-size: 15px;
 }
 
+.sous-titre-secondaire {
+  color: var(--texte-attenue);
+  text-align: center;
+  font-size: 20px;
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  margin: 4px 0 20px;
+}
+
+.pied-copyright {
+  text-align: center;
+  color: var(--texte-attenue);
+  font-size: 12px;
+  margin: 32px 0 12px;
+  opacity: 0.6;
+}
+
 .texte-attenue {
   color: var(--texte-attenue);
 }

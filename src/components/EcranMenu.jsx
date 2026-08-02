@@ -1,4 +1,4 @@
-const NOM_ETABLISSEMENT = import.meta.env.VITE_NOM_ETABLISSEMENT || "Yakpehi";
+const NOM_ETABLISSEMENT = import.meta.env.VITE_NOM_ETABLISSEMENT || "Yakpéhi";
 
 export default function EcranMenu({
   table,
@@ -14,8 +14,8 @@ export default function EcranMenu({
     <div className="ecran">
       <header className="entete-menu">
         <span className="eyebrow">Table {table.numero}</span>
-        <h1 className="titre-marque">Tini</h1>
-        <p className="sous-titre">Bienvenue au {NOM_ETABLISSEMENT}</p>
+        <h1 className="titre-marque" style={{ fontSize: 30 }}>Bienvenue au {NOM_ETABLISSEMENT}</h1>
+        <p className="sous-titre-secondaire">Compose ta tournée</p>
       </header>
 
       <ul className="liste-produits">
@@ -73,6 +73,8 @@ export default function EcranMenu({
           <span className="barre-panier__total">{totalPanier} FCFA</span>
         </button>
       )}
+
+      <p className="pied-copyright">© Alain Botinhi</p>
     </div>
   );
 }
