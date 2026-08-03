@@ -1,31 +1,18 @@
 const NOM_ETABLISSEMENT = import.meta.env.VITE_NOM_ETABLISSEMENT || "Yakpéhi";
 
-const ORDRE_CATEGORIES = ["biere", "vin", "cocktail", "spiritueux", "energisante", "soft", "plat"];
-const LIBELLES_CATEGORIES = {
-  biere: "Bières",
-  vin: "Vins",
-  spiritueux: "Spiritueux",
-  cocktail: "Cocktails",
-  energisante: "Boissons énergisantes",
-  soft: "Softs / Sans alcool",
-  plat: "Plats",
-};
-
 function grouperParCategorie(produits) {
-  const groupes = ORDRE_CATEGORIES.map((cle) => ({
-    cle,
-    libelle: LIBELLES_CATEGORIES[cle],
-    produits: produits.filter((p) => p.categorie === cle),
-  })).filter((groupe) => groupe.produits.length > 0);
+  const groupesParId = new Map();
 
-  // Sécurité : si une catégorie inconnue apparaît (pas dans ORDRE_CATEGORIES), on l'affiche quand même à la fin.
-  const categoriesConnues = new Set(ORDRE_CATEGORIES);
-  const restants = produits.filter((p) => !categoriesConnues.has(p.categorie));
-  if (restants.length > 0) {
-    groupes.push({ cle: "autre", libelle: "Autres", produits: restants });
+  for (const produit of produits) {
+    const cat = produit.categorie;
+    if (!cat) continue; // sécurité si jamais un produit arrive sans catégorie
+    if (!groupesParId.has(cat.id)) {
+      groupesParId.set(cat.id, { cle: cat.id, libelle: cat.nom, ordre: cat.ordre, produits: [] });
+    }
+    groupesParId.get(cat.id).produits.push(produit);
   }
 
-  return groupes;
+  return Array.from(groupesParId.values()).sort((a, b) => a.ordre - b.ordre);
 }
 
 export default function EcranMenu({
