@@ -4,6 +4,7 @@ import {
   recupererCommandesActives,
   recupererHistoriqueCommandes,
   recupererStatsVentes,
+  recupererBenefices,
   changerStatutCommande,
   changerPaiementCommande,
   lireSession,
@@ -120,10 +121,12 @@ export default function EcranDashboard() {
 
   const idsConnus = useRef(null); // null = premier chargement, pas encore initialisé
 
-  const [onglet, setOnglet] = useState("encours"); // encours | historique
+  const [onglet, setOnglet] = useState("encours"); // encours | historique | benefice
   const [historique, setHistorique] = useState([]);
   const [chargementHistorique, setChargementHistorique] = useState(false);
   const [stats, setStats] = useState(null);
+  const [benefices, setBenefices] = useState(null);
+  const [chargementBenefices, setChargementBenefices] = useState(false);
 
 
   function chargerHistorique() {
@@ -137,6 +140,19 @@ export default function EcranDashboard() {
       .catch(() => {
         setErreur("Impossible de charger l'historique.");
         setChargementHistorique(false);
+      });
+  }
+
+  function chargerBenefices() {
+    setChargementBenefices(true);
+    recupererBenefices()
+      .then((donnees) => {
+        setBenefices(donnees);
+        setChargementBenefices(false);
+      })
+      .catch(() => {
+        setErreur("Impossible de charger les bénéfices.");
+        setChargementBenefices(false);
       });
   }
 
@@ -171,7 +187,7 @@ export default function EcranDashboard() {
   }
 
   useEffect(() => {
-    if (session && session.role !== "gerant" && onglet === "historique") {
+    if (session && session.role !== "gerant" && (onglet === "historique" || onglet === "benefice")) {
       setOnglet("encours");
     }
   }, [session, onglet]);
@@ -183,6 +199,7 @@ export default function EcranDashboard() {
 
   useEffect(() => {
     if (session && onglet === "historique") chargerHistorique();
+    if (session && onglet === "benefice") chargerBenefices();
   }, [onglet, session]);
 
   useEffect(() => {
@@ -309,6 +326,15 @@ export default function EcranDashboard() {
             Historique
           </button>
         )}
+        {session.role === "gerant" && (
+          <button
+            className="bouton-ajouter"
+            style={{ opacity: onglet === "benefice" ? 1 : 0.5 }}
+            onClick={() => setOnglet("benefice")}
+          >
+            Bénéfice
+          </button>
+        )}
       </div>
 
       {permissionNotif === "default" && (
@@ -374,7 +400,8 @@ export default function EcranDashboard() {
             ))}
           </ul>
         )
-      ) : chargementHistorique ? (
+      ) : onglet === "historique" ? (
+        chargementHistorique ? (
         <p className="texte-attenue" style={{ padding: "0 20px" }}>Chargement de l'historique…</p>
       ) : (
         <>
@@ -453,6 +480,39 @@ export default function EcranDashboard() {
               </div>
             ))
           )}
+        </>
+        )
+      ) : chargementBenefices ? (
+        <p className="texte-attenue" style={{ padding: "0 20px" }}>Chargement des bénéfices…</p>
+      ) : !benefices || benefices.produits.length === 0 ? (
+        <p className="texte-attenue" style={{ padding: "0 20px" }}>
+          Pas encore de commande servie pour calculer un bénéfice.
+        </p>
+      ) : (
+        <>
+          <div className="carte-produit" style={{ flexDirection: "column", alignItems: "flex-start", gap: 8, marginBottom: 16 }}>
+            <span className="carte-produit__nom">Bénéfice par produit</span>
+            <ul className="liste-recap" style={{ width: "100%" }}>
+              {benefices.produits.map((p) => (
+                <li key={p.nom}>
+                  {p.quantite} × {p.nom}
+                  <span className="liste-recap__prix">{p.benefice} FCFA</span>
+                </li>
+              ))}
+            </ul>
+            <div className="pied-panier__total" style={{ width: "100%", margin: 0, fontSize: 13 }}>
+              <span>Chiffre d'affaires</span>
+              <span>{benefices.chiffre_affaires_general} FCFA</span>
+            </div>
+            <div className="pied-panier__total" style={{ width: "100%", margin: 0 }}>
+              <span>Bénéfice total</span>
+              <span className="pied-panier__montant">{benefices.benefice_general} FCFA</span>
+            </div>
+          </div>
+
+          <p className="texte-attenue" style={{ padding: "0 4px", fontSize: 11 }}>
+            Calculé à partir du prix de vente et du coût d'achat renseignés pour chaque produit dans l'admin, sur les commandes servies.
+          </p>
         </>
       )}
     </div>
