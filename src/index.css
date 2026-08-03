@@ -97,6 +97,14 @@ body {
   margin: 4px 0 20px;
 }
 
+.titre-categorie {
+  font-family: "Fraunces", serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--accent-fonce);
+  margin: 0 0 10px 4px;
+}
+
 .pied-copyright {
   text-align: center;
   color: var(--texte-attenue);
