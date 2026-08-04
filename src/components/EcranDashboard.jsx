@@ -157,18 +157,35 @@ export default function EcranDashboard() {
   }
 
   function exporterExcel() {
-    const lignesCommandes = historique.map((commande) => {
+    const lignesCommandes = historique.flatMap((commande) => {
       const date = new Date(commande.date_creation);
-      return {
-        Date: date.toLocaleDateString("fr-FR"),
-        Heure: formaterHeure(commande.date_creation),
-        Table: commande.table_numero,
-        Produits: commande.lignes.map((l) => `${l.quantite} × ${l.produit.nom}`).join(", "),
-        Statut: LIBELLES_STATUT[commande.statut] || commande.statut,
-        État: commande.paye ? "Payé" : "",
-        "Servi par": commande.servi_par_nom || "",
-        "Total (FCFA)": commande.total,
-      };
+
+      return (commande.lignes || []).map((ligne) => {
+        const quantite = Number(ligne.quantite) || 0;
+        const sousTotal = Number(ligne.sous_total) || 0;
+
+        // Utilise prix_unitaire s'il est fourni par l'API.
+        // Sinon, le calcule à partir du sous-total déjà présent dans l'historique.
+        const prixUnitaire =
+          Number(ligne.prix_unitaire) ||
+          (quantite > 0 ? sousTotal / quantite : 0);
+
+        const montant =
+          sousTotal || quantite * prixUnitaire;
+
+        return {
+          Date: date.toLocaleDateString("fr-FR"),
+          Heure: formaterHeure(commande.date_creation),
+          Table: commande.table_numero,
+          Produits: ligne.produit?.nom || "",
+          Quantité: quantite,
+          "Prix unitaire": prixUnitaire,
+          Montant: montant,
+          Statut: LIBELLES_STATUT[commande.statut] || commande.statut,
+          État: commande.paye ? "Payé" : "",
+          "Servie par": commande.servi_par_nom || "",
+        };
+      });
     });
 
     const lignesRecap = (stats?.produits || []).map((p) => ({
@@ -176,11 +193,38 @@ export default function EcranDashboard() {
       Quantité: p.quantite,
       "Montant (FCFA)": p.montant,
     }));
-    lignesRecap.push({ Produit: "TOTAL GÉNÉRAL", Quantité: "", "Montant (FCFA)": stats?.total_general || 0 });
+
+    lignesRecap.push({
+      Produit: "TOTAL GÉNÉRAL",
+      Quantité: "",
+      "Montant (FCFA)": stats?.total_general || 0,
+    });
 
     const classeur = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(classeur, XLSX.utils.json_to_sheet(lignesCommandes), "Commandes");
-    XLSX.utils.book_append_sheet(classeur, XLSX.utils.json_to_sheet(lignesRecap), "Récapitulatif");
+
+    const feuilleCommandes = XLSX.utils.json_to_sheet(lignesCommandes);
+    feuilleCommandes["!cols"] = [
+      { wch: 12 },
+      { wch: 8 },
+      { wch: 8 },
+      { wch: 24 },
+      { wch: 10 },
+      { wch: 15 },
+      { wch: 12 },
+      { wch: 18 },
+      { wch: 10 },
+      { wch: 18 },
+    ];
+
+    const feuilleRecap = XLSX.utils.json_to_sheet(lignesRecap);
+    feuilleRecap["!cols"] = [
+      { wch: 24 },
+      { wch: 12 },
+      { wch: 18 },
+    ];
+
+    XLSX.utils.book_append_sheet(classeur, feuilleCommandes, "Commandes");
+    XLSX.utils.book_append_sheet(classeur, feuilleRecap, "Récapitulatif");
 
     const aujourdhui = new Date().toISOString().slice(0, 10);
     XLSX.writeFile(classeur, `tini_historique_${aujourdhui}.xlsx`);
