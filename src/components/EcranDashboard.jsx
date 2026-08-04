@@ -173,6 +173,9 @@ export default function EcranDashboard() {
         const montant =
           sousTotal || quantite * prixUnitaire;
 
+        const coutUnitaire = Number(ligne.cout_unitaire) || 0;
+        const benefice = (prixUnitaire - coutUnitaire) * quantite;
+
         return {
           Date: date.toLocaleDateString("fr-FR"),
           Heure: formaterHeure(commande.date_creation),
@@ -181,6 +184,7 @@ export default function EcranDashboard() {
           Quantité: quantite,
           "Prix unitaire": prixUnitaire,
           Montant: montant,
+          Bénéfice: benefice,
           Statut: LIBELLES_STATUT[commande.statut] || commande.statut,
           État: commande.paye ? "Payé" : "",
           "Servie par": commande.servi_par_nom || "",
@@ -211,6 +215,7 @@ export default function EcranDashboard() {
       { wch: 10 },
       { wch: 15 },
       { wch: 12 },
+      { wch: 14 },
       { wch: 18 },
       { wch: 10 },
       { wch: 18 },
