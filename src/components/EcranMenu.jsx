@@ -1,4 +1,4 @@
-const NOM_ETABLISSEMENT = import.meta.env.VITE_NOM_ETABLISSEMENT || "Yakpéhi";
+const NOM_ETABLISSEMENT = import.meta.env.VITE_NOM_ETABLISSEMENT || "Chez Murielle";
 
 function grouperParCategorie(produits) {
   const groupesParId = new Map();
@@ -31,7 +31,7 @@ export default function EcranMenu({
     <div className="ecran">
       <header className="entete-menu">
         <span className="eyebrow">Table {table.numero}</span>
-        <h1 className="titre-marque" style={{ fontSize: 30 }}>Bienvenue au {NOM_ETABLISSEMENT}</h1>
+        <h1 className="titre-marque" style={{ fontSize: 30 }}>Bienvenue {NOM_ETABLISSEMENT}</h1>
         <p className="sous-titre-secondaire">Compose ta tournée</p>
       </header>
 
